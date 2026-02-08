@@ -120,10 +120,10 @@ export function Header() {
             </div>
 
             {/* Desktop CTA */}
-            <div className="hidden sm:flex gap-x-3  sm:items-center sm:gap-x-4 ">
+            <div className="hidden sm:flex gap-x-3 text-white  sm:items-center sm:gap-x-4 ">
          
                   <ShoppingBag />
-                  <Button render={<Link href="/event-enquiry"></Link>}>
+                  <Button render={<Link href="/products"></Link>}>
                     Shop Now
                   </Button>
                 

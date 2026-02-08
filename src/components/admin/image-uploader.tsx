@@ -331,7 +331,7 @@ export function ImageUpload({
 
       {/* ERRORS */}
       {errors.length > 0 && (
-        <Alert variant="destructive">
+        <Alert>
           <AlertTitle>Upload Error</AlertTitle>
           <AlertDescription>
             {errors.map((e, i) => (
