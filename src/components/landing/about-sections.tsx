@@ -1,14 +1,6 @@
 import { Card } from "@/components/ui/card";
-import {
-  Heart,
-  Sparkles,
-  ShieldCheck,
-  Truck,
-  Award,
-  Leaf,
-} from "lucide-react";
+import { Heart, Sparkles, ShieldCheck, Truck, Award, Leaf } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 const values = [
   {
@@ -170,7 +162,8 @@ export function AboutWhyUs() {
     {
       icon: ShieldCheck,
       title: "Secure & easy returns",
-      description: "Shop with confidence; we’re here if you need to exchange or return.",
+      description:
+        "Shop with confidence; we’re here if you need to exchange or return.",
     },
     {
       icon: Heart,
@@ -223,21 +216,18 @@ export function AboutCta() {
           ethnic elegance.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Button
-            asChild
-            size="lg"
-            className="h-11 rounded-lg bg-white text-[#1f3a56] hover:bg-white/90 font-medium"
+          <Link
+            href="/products"
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-transparent px-4 font-medium text-sm bg-white text-[#1f3a56] hover:bg-white/90 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <Link href="/products">Shop now</Link>
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="h-11 rounded-lg border-white/40 text-white hover:bg-white/10 hover:text-white font-medium"
+            Shop now
+          </Link>
+          <Link
+            href="/contact"
+            className="inline-flex h-11 items-center justify-center rounded-lg border border-white/40 px-4 font-medium text-sm text-white hover:bg-white/10 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <Link href="/contact">Contact us</Link>
-          </Button>
+            Contact us
+          </Link>
         </div>
       </div>
     </section>

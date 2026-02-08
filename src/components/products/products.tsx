@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,6 +12,7 @@ import {
   Filter,
   X,
 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,10 +22,9 @@ import {
   Select,
   SelectTrigger,
   SelectValue,
-  SelectPopup,
+  SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Sheet,
@@ -35,8 +34,25 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProductStore } from "@/components/products/store";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+import {
+  useProducts,
+  FetchProductsParams,
+  type ProductListResult,
+} from "@/components/products/store";
 import { cn } from "@/lib/utils";
+
+/* -------------------------------------------------------------------------- */
+/*                                  CONSTANTS                                 */
+/* -------------------------------------------------------------------------- */
 
 const CATEGORIES = [
   { value: "", label: "All Categories" },
@@ -67,7 +83,17 @@ const RATINGS = [
   { value: "1", label: "1+ Stars" },
 ];
 
-function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
+/* -------------------------------------------------------------------------- */
+/*                               STAR RATING                                  */
+/* -------------------------------------------------------------------------- */
+
+function StarRating({
+  rating,
+  size = "sm",
+}: {
+  rating: number;
+  size?: "sm" | "md";
+}) {
   const sizeClass = size === "sm" ? "h-3 w-3" : "h-4 w-4";
   const filledColor = "fill-amber-400 text-amber-400";
   const emptyColor = "text-muted-200 fill-muted-200";
@@ -76,6 +102,7 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((starIndex) => {
         const filledAmount = Math.min(1, Math.max(0, rating - starIndex + 1));
+
         if (filledAmount >= 1) {
           return (
             <Star
@@ -84,6 +111,7 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
             />
           );
         }
+
         if (filledAmount >= 0.5) {
           return (
             <div key={starIndex} className="relative inline-block shrink-0">
@@ -97,34 +125,50 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
             </div>
           );
         }
-        return (
-          <Star key={starIndex} className={cn(sizeClass, emptyColor)} />
-        );
+
+        return <Star key={starIndex} className={cn(sizeClass, emptyColor)} />;
       })}
     </div>
   );
 }
 
-function FilterSection() {
-  const {
-    category,
-    subCategory,
-    design,
-    priceMin,
-    priceMax,
-    rating,
-    setCategory,
-    setSubCategory,
-    setDesign,
-    setPriceMin,
-    setPriceMax,
-    setRating,
-    resetFilters,
-    fetchProducts,
-  } = useProductStore();
+/* -------------------------------------------------------------------------- */
+/*                               FILTER SECTION                               */
+/* -------------------------------------------------------------------------- */
 
-  const handleApplyFilters = () => {
-    fetchProducts();
+function FilterSection({
+  filters,
+  setFilters,
+  onApplyFilters,
+}: {
+  filters: FetchProductsParams & { viewMode?: string };
+  setFilters: React.Dispatch<
+    React.SetStateAction<FetchProductsParams & { viewMode?: string }>
+  >;
+  onApplyFilters: () => void;
+}) {
+  const handleFilterChange = (
+    key: keyof FetchProductsParams,
+    value: string | number | null,
+  ) => {
+    const normalizedValue = value ?? "";
+    setFilters((prev) => ({ ...prev, [key]: normalizedValue, page: 1 }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      searchQuery: "",
+      category: "",
+      subCategory: "",
+      design: "",
+      priceMin: "",
+      priceMax: "",
+      rating: "",
+      page: 1,
+      limit: 12,
+      viewMode: "grid",
+    });
+    onApplyFilters();
   };
 
   return (
@@ -142,89 +186,106 @@ function FilterSection() {
         </Button>
       </div>
 
+      {/* Category */}
       <div>
         <Label className="mb-2 block text-sm font-medium">Category</Label>
-        <Select value={category || " "} onValueChange={(v) => setCategory(v === " " ? "" : v)}>
+        <Select
+          value={filters.category || ""}
+          onValueChange={(v) => handleFilterChange("category", v)}
+        >
           <SelectTrigger className="h-9" aria-label="Category">
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
-          <SelectPopup>
+          <SelectContent>
             {CATEGORIES.map((c) => (
-              <SelectItem key={c.value || "all"} value={c.value || " "}>
+              <SelectItem key={c.value || "all"} value={c.value || ""}>
                 {c.label}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
       </div>
 
+      {/* Sub Category */}
       <div>
         <Label className="mb-2 block text-sm font-medium">Sub Category</Label>
         <Input
-          placeholder="e.g. Kurta, Shirt"
-          value={subCategory}
-          onChange={(e) => setSubCategory(e.target.value)}
           className="h-9"
+          placeholder="e.g. Kurta, Shirt"
+          value={filters.subCategory || ""}
+          onChange={(e) => handleFilterChange("subCategory", e.target.value)}
         />
       </div>
 
+      {/* Design */}
       <div>
         <Label className="mb-2 block text-sm font-medium">Design</Label>
-        <Select value={design || " "} onValueChange={(v) => setDesign(v === " " ? "" : v)}>
+        <Select
+          value={filters.design || ""}
+          onValueChange={(v) => handleFilterChange("design", v)}
+        >
           <SelectTrigger className="h-9" aria-label="Design">
             <SelectValue placeholder="Select design" />
           </SelectTrigger>
-          <SelectPopup>
+          <SelectContent>
             {DESIGNS.map((d) => (
-              <SelectItem key={d.value || "all"} value={d.value || " "}>
+              <SelectItem key={d.value || "all"} value={d.value || ""}>
                 {d.label}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
       </div>
 
+      {/* Rating */}
       <div>
         <Label className="mb-2 block text-sm font-medium">Rating</Label>
-        <Select value={rating || " "} onValueChange={(v) => setRating(v === " " ? "" : v)}>
+        <Select
+          value={filters.rating || ""}
+          onValueChange={(v) => handleFilterChange("rating", v)}
+        >
           <SelectTrigger className="h-9" aria-label="Rating">
             <SelectValue placeholder="Minimum rating" />
           </SelectTrigger>
-          <SelectPopup>
+          <SelectContent>
             {RATINGS.map((r) => (
-              <SelectItem key={r.value || "all"} value={r.value || " "}>
+              <SelectItem key={r.value || "all"} value={r.value || ""}>
                 {r.label}
               </SelectItem>
             ))}
-          </SelectPopup>
+          </SelectContent>
         </Select>
       </div>
 
+      {/* Price */}
       <div>
-        <Label className="mb-2 block text-sm font-medium">Price Range (₹)</Label>
+        <Label className="mb-2 block text-sm font-medium">
+          Price Range (₹)
+        </Label>
         <div className="flex gap-2">
           <Input
             type="number"
-            placeholder="Min"
-            value={priceMin}
-            onChange={(e) => setPriceMin(e.target.value)}
-            className="h-9"
             min={0}
+            className="h-9"
+            placeholder="Min"
+            value={filters.priceMin || ""}
+            onChange={(e) => handleFilterChange("priceMin", e.target.value)}
           />
           <Input
             type="number"
-            placeholder="Max"
-            value={priceMax}
-            onChange={(e) => setPriceMax(e.target.value)}
-            className="h-9"
             min={0}
+            className="h-9"
+            placeholder="Max"
+            value={filters.priceMax || ""}
+            onChange={(e) => handleFilterChange("priceMax", e.target.value)}
           />
         </div>
+
         <Button
           variant="secondary"
           size="sm"
           className="mt-2 w-full"
-          onClick={handleApplyFilters}
+          onClick={onApplyFilters}
         >
           Apply Filters
         </Button>
@@ -233,41 +294,82 @@ function FilterSection() {
   );
 }
 
-function getProductImage(product: { variants?: Array<{ images?: string[] }> }): string | null {
-  const img = product.variants?.[0]?.images?.[0];
-  return img || null;
+/* -------------------------------------------------------------------------- */
+/*                               HELPERS                                      */
+/* -------------------------------------------------------------------------- */
+
+function getProductImage(product: {
+  variants?: Array<{ images?: string[] }>;
+}): string | null {
+  return product.variants?.[0]?.images?.[0] ?? null;
 }
 
+/* -------------------------------------------------------------------------- */
+/*                               PRODUCT LIST                                 */
+/* -------------------------------------------------------------------------- */
+
 export default function ProductList() {
-  const {
-    filteredProducts,
-    isLoading,
-    error,
-    searchQuery,
-    viewMode,
-    setSearchQuery,
-    setViewMode,
-    fetchProducts,
-    page,
-    totalProducts,
-    setPage,
-  } = useProductStore();
+  const [filters, setFilters] = useState<
+    FetchProductsParams & { viewMode?: string }
+  >({
+    searchQuery: "",
+    category: "",
+    subCategory: "",
+    design: "",
+    priceMin: "",
+    priceMax: "",
+    rating: "",
+    page: 1,
+    limit: 12,
+    viewMode: "grid",
+  });
+
+  const { data: productData, isLoading, error, refetch } = useProducts(filters);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    refetch();
+  }, [filters, refetch]);
 
-  const limit = 12;
-  const totalPages = Math.ceil(totalProducts / limit) || 1;
+  /* ----------------------------- handlers -------------------------------- */
+
+  const handleSearchChange = (query: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      searchQuery: query,
+      page: 1,
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    refetch();
+    setMobileFiltersOpen(false);
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters((prev) => ({ ...prev, page }));
+  };
+
+  /* ----------------------------- render ---------------------------------- */
+
+  const typedProductData = productData as ProductListResult | undefined;
+
+  const productsToDisplay = typedProductData?.products || [];
+  const totalProducts = typedProductData?.total ?? productsToDisplay.length;
+  const pageSize = typedProductData?.limit || filters.limit || 12;
+  const totalPages = Math.max(1, Math.ceil(totalProducts / pageSize));
 
   return (
     <div className="px-4 py-4 sm:py-6">
       <div className="flex flex-col gap-6 lg:flex-row">
         <aside className="hidden w-64 shrink-0 lg:block">
           <div className="sticky top-4 rounded-lg border bg-card p-4">
-            <FilterSection />
+            <FilterSection
+              filters={filters}
+              setFilters={setFilters}
+              onApplyFilters={handleApplyFilters}
+            />
           </div>
         </aside>
 
@@ -279,7 +381,7 @@ export default function ProductList() {
                   open={mobileFiltersOpen}
                   onOpenChange={setMobileFiltersOpen}
                 >
-                  <SheetTrigger asChild>
+                  <SheetTrigger>
                     <Button
                       variant="outline"
                       size="sm"
@@ -295,19 +397,25 @@ export default function ProductList() {
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100vh-8rem)] pr-4">
                       <div className="py-4">
-                        <FilterSection />
+                        <FilterSection
+                          filters={filters}
+                          setFilters={setFilters}
+                          onApplyFilters={handleApplyFilters}
+                        />
                       </div>
                     </ScrollArea>
                   </SheetContent>
                 </Sheet>
                 <span className="text-muted-foreground text-sm">
-                  {isLoading ? "Loading..." : `${filteredProducts.length} products`}
+                  {isLoading ? "Loading..." : `${totalProducts} products`}
                 </span>
               </div>
               <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={(v) => v && setViewMode(v)}
+                value={[filters.viewMode || "grid"]}
+                onValueChange={(values) => {
+                  const next = values?.[0];
+                  if (next) setFilters((prev) => ({ ...prev, viewMode: next }));
+                }}
                 className="hidden sm:flex"
               >
                 <ToggleGroupItem value="grid" aria-label="Grid view">
@@ -324,15 +432,17 @@ export default function ProductList() {
                 <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <Input
                   placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={filters.searchQuery || ""}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <ToggleGroup
-                type="single"
-                value={viewMode}
-                onValueChange={(v) => v && setViewMode(v)}
+                value={[filters.viewMode || "grid"]}
+                onValueChange={(values) => {
+                  const next = values?.[0];
+                  if (next) setFilters((prev) => ({ ...prev, viewMode: next }));
+                }}
                 className="sm:hidden"
               >
                 <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
@@ -347,12 +457,17 @@ export default function ProductList() {
 
           {error ? (
             <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-6 text-center">
-              <p className="text-destructive">{error}</p>
-              <Button variant="outline" size="sm" className="mt-3" onClick={fetchProducts}>
+              <p className="text-destructive">{error.message}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => refetch()}
+              >
                 Retry
               </Button>
             </div>
-          ) : isLoading && filteredProducts.length === 0 ? (
+          ) : isLoading && productsToDisplay.length === 0 ? (
             <div className="grid gap-4 sm:gap-6 xs:grid-cols-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="overflow-hidden">
@@ -365,7 +480,7 @@ export default function ProductList() {
                 </Card>
               ))}
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : productsToDisplay.length === 0 ? (
             <div className="py-16 text-center">
               <p className="text-muted-foreground text-lg">
                 No products found matching your filters.
@@ -373,7 +488,22 @@ export default function ProductList() {
               <p className="text-muted-foreground mt-2 text-sm">
                 Try adjusting your search or filters.
               </p>
-              <Button variant="outline" className="mt-4" onClick={fetchProducts}>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() =>
+                  setFilters({
+                    ...filters,
+                    searchQuery: "",
+                    category: "",
+                    subCategory: "",
+                    design: "",
+                    priceMin: "",
+                    priceMax: "",
+                    rating: "",
+                  })
+                }
+              >
                 View All Products
               </Button>
             </div>
@@ -381,16 +511,18 @@ export default function ProductList() {
             <div
               className={cn(
                 "grid gap-4 sm:gap-6",
-                viewMode === "grid"
+                filters.viewMode === "grid"
                   ? "xs:grid-cols-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4"
-                  : "grid-cols-1"
+                  : "grid-cols-1",
               )}
             >
-              {filteredProducts.map((product) => {
+              {productsToDisplay.map((product) => {
                 const img = getProductImage(product);
                 const discount =
                   product.mrp > product.price
-                    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+                    ? Math.round(
+                        ((product.mrp - product.price) / product.mrp) * 100,
+                      )
                     : 0;
 
                 return (
@@ -398,7 +530,7 @@ export default function ProductList() {
                     key={product._id}
                     className="group overflow-hidden transition-shadow hover:shadow-lg"
                   >
-                    <Link href={`/product/${product._id}`}>
+                    <Link href={`/products/${product._id}`}>
                       <CardContent className="p-0">
                         <div className="relative aspect-square overflow-hidden bg-muted">
                           {img ? (
@@ -453,7 +585,8 @@ export default function ProductList() {
                               </span>
                             )}
                           </div>
-                          {(product.averageRating > 0 || product.ratingCount > 0) && (
+                          {(product.averageRating > 0 ||
+                            product.ratingCount > 0) && (
                             <div className="flex items-center gap-1.5">
                               <StarRating
                                 rating={product.averageRating || 0}
@@ -461,9 +594,7 @@ export default function ProductList() {
                               />
                               <span className="text-muted-foreground text-xs">
                                 {product.averageRating > 0
-                                  ? product.averageRating % 1 === 0.5
-                                    ? product.averageRating.toFixed(1)
-                                    : Math.round(product.averageRating)
+                                  ? product.averageRating.toFixed(1)
                                   : "0"}
                                 {product.ratingCount > 0 && (
                                   <span className="ml-0.5">
@@ -480,7 +611,9 @@ export default function ProductList() {
                               onClick={(e) => e.preventDefault()}
                             >
                               <ShoppingCart className="mr-1 h-4 w-4 sm:mr-2" />
-                              <span className="hidden xs:inline">Add to cart</span>
+                              <span className="hidden xs:inline">
+                                Add to cart
+                              </span>
                               <span className="xs:hidden">Add</span>
                             </Button>
                             <Button
@@ -499,6 +632,56 @@ export default function ProductList() {
                 );
               })}
             </div>
+          )}
+          {totalPages > 1 && (
+            <Pagination className="mt-8">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if ((filters.page || 1) > 1) {
+                        handlePageChange((filters.page || 1) - 1);
+                      }
+                    }}
+                    className={cn(
+                      (filters.page || 1) <= 1 &&
+                        "pointer-events-none opacity-50",
+                    )}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(i + 1);
+                      }}
+                      isActive={(filters.page || 1) === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if ((filters.page || 1) < totalPages) {
+                        handlePageChange((filters.page || 1) + 1);
+                      }
+                    }}
+                    className={cn(
+                      (filters.page || 1) >= totalPages &&
+                        "pointer-events-none opacity-50",
+                    )}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
         </main>
       </div>
