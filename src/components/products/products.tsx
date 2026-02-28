@@ -8,19 +8,15 @@ import {
   LayoutList,
   Heart,
   Star,
-  ShoppingCart,
   SlidersHorizontal,
   X,
   ChevronDown,
   ChevronUp,
-  Sparkles,
   Package,
   Palette,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -233,7 +229,7 @@ function FilterSection({
       priceMax: "",
       rating: "",
       page: 1,
-      limit: 12,
+      limit: 8,
       viewMode: "grid",
     });
     onApplyFilters();
@@ -497,6 +493,25 @@ function getProductImage(product: {
 /*                             PRODUCT CARD                                    */
 /* -------------------------------------------------------------------------- */
 
+/** Extract unique color names from product variants */
+function getColorSwatches(product: any): string[] {
+  if (!product.variants?.length) return [];
+  return product.variants
+    .map((v: any) => v.color)
+    .filter((c: string, i: number, arr: string[]) => c && arr.indexOf(c) === i)
+    .slice(0, 4);
+}
+
+/** Get second image from variants for hover effect */
+function getSecondImage(product: any): string | null {
+  const variants = product.variants;
+  if (!variants?.length) return null;
+  // Try second image of first variant, then first image of second variant
+  if (variants[0]?.images?.[1]) return variants[0].images[1];
+  if (variants[1]?.images?.[0]) return variants[1].images[0];
+  return null;
+}
+
 function ProductCard({
   product,
   viewMode,
@@ -505,194 +520,224 @@ function ProductCard({
   viewMode: string;
 }) {
   const img = getProductImage(product);
+  const hoverImg = getSecondImage(product);
   const discount =
     product.mrp > product.price
       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
       : 0;
+  const colors = getColorSwatches(product);
 
   if (viewMode === "list") {
     return (
-      <Card className="group overflow-hidden border-border/60 transition-all duration-300 hover:shadow-md hover:border-border">
-        <Link href={`/products/${product._id}`}>
-          <CardContent className="p-0">
-            <div className="flex gap-3 sm:gap-4">
-              <div className="relative h-36 w-28 shrink-0 overflow-hidden bg-muted rounded-l-lg sm:h-48 sm:w-44">
-                {img ? (
-                  <Image
-                    src={img}
-                    alt={product.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 640px) 112px, 176px"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                    <Package className="h-7 w-7 sm:h-8 sm:w-8" />
-                  </div>
-                )}
-                {discount > 0 && (
-                  <Badge className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 bg-rose-500 text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 font-semibold">
-                    {discount}% OFF
-                  </Badge>
-                )}
-              </div>
-              <div className="flex flex-1 flex-col justify-between py-2.5 pr-3 sm:py-3 sm:pr-4">
-                <div className="space-y-1 sm:space-y-1.5">
-                  <p className="text-[10px] sm:text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {product.category} · {product.subCategory}
-                  </p>
-                  <h3 className="text-xs sm:text-sm font-medium leading-snug line-clamp-2 group-hover:text-primary transition-colors">
-                    {product.name}
-                  </h3>
-                  {(product.averageRating > 0 || product.ratingCount > 0) && (
-                    <div className="flex items-center gap-1.5">
-                      <StarRating rating={product.averageRating || 0} size="sm" />
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">
-                        ({product.ratingCount})
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col gap-2 pt-1.5 sm:flex-row sm:items-end sm:justify-between sm:pt-2">
-                  <div className="flex items-baseline gap-1.5 sm:gap-2">
-                    <span className="text-base sm:text-lg font-bold text-foreground">
-                      ₹{product.price.toLocaleString("en-IN")}
-                    </span>
-                    {product.mrp > product.price && (
-                      <span className="text-[11px] sm:text-sm text-muted-foreground line-through">
-                        ₹{product.mrp.toLocaleString("en-IN")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="h-7 sm:h-8 text-[11px] sm:text-xs px-2.5 sm:px-3"
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      <ShoppingCart className="mr-1 h-3 w-3 sm:mr-1.5 sm:h-3.5 sm:w-3.5" />
-                      Add
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-7 w-7 sm:h-8 sm:w-8"
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Link>
-      </Card>
-    );
-  }
-
-  // Grid view card
-  return (
-    <Card className="group overflow-hidden border-border/60 rounded-lg sm:rounded-xl transition-all duration-300 hover:shadow-lg hover:border-border hover:-translate-y-0.5">
-      <Link href={`/products/${product._id}`}>
-        <CardContent className="p-0">
+      <div className="group relative bg-card border border-border/40 rounded-lg overflow-hidden transition-all duration-300 hover:border-border/80 hover:shadow-sm">
+        <Link href={`/products/${product._id}`} className="flex gap-0">
           {/* Image */}
-          <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+          <div className="relative h-40 w-32 shrink-0 overflow-hidden bg-neutral-100 dark:bg-neutral-900 sm:h-52 sm:w-44">
             {img ? (
               <Image
                 src={img}
                 alt={product.name}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 480px) 47vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                sizes="(max-width: 640px) 128px, 176px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                <Package className="h-8 w-8 sm:h-10 sm:w-10" />
-              </div>
-            )}
-
-            {/* Overlays */}
-            {product.label && (
-              <div className="absolute left-2 top-2 sm:left-3 sm:top-3">
-                <Badge className="bg-foreground/90 text-background text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 font-medium backdrop-blur-sm">
-                  <Sparkles className="mr-0.5 sm:mr-1 h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                  {product.label}
-                </Badge>
+              <div className="flex h-full w-full items-center justify-center">
+                <Package className="h-6 w-6 text-muted-foreground/40" />
               </div>
             )}
             {discount > 0 && (
-              <div className="absolute right-2 top-2 sm:right-3 sm:top-3">
-                <span className="inline-flex items-center rounded-md bg-rose-500 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-white shadow-sm">
-                  {discount}% OFF
+              <div className="absolute left-2 top-2 sm:left-2.5 sm:top-2.5">
+                <span className="inline-block rounded-sm bg-foreground/90 backdrop-blur-sm px-1.5 py-[3px] text-[9px] sm:text-[10px] font-semibold tracking-wide text-background">
+                  -{discount}%
                 </span>
               </div>
             )}
-
-            {/* Wishlist — always visible on mobile, hover on desktop */}
-            <button
-              className="absolute right-2 bottom-2 sm:right-3 sm:bottom-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/80 dark:bg-black/60 backdrop-blur-sm shadow-md border border-white/20 transition-all duration-200 hover:bg-white hover:scale-110 active:scale-95 sm:opacity-0 sm:translate-y-2 sm:group-hover:opacity-100 sm:group-hover:translate-y-0"
-              onClick={(e) => e.preventDefault()}
-              aria-label="Add to wishlist"
-            >
-              <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground/70" />
-            </button>
           </div>
 
-          {/* Details */}
-          <div className="space-y-1 sm:space-y-1.5 p-2.5 sm:p-4">
-            <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground truncate">
-              {product.category} · {product.subCategory}
-            </p>
-            <h3 className="line-clamp-1 text-[13px] sm:text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors">
-              {product.name}
-            </h3>
+          {/* Content */}
+          <div className="flex flex-1 flex-col justify-between p-3 sm:p-4 min-w-0">
+            <div className="space-y-1.5 sm:space-y-2">
+              <p className="text-[10px] sm:text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
+                {product.subCategory}
+              </p>
+              <h3 className="text-[13px] sm:text-sm font-medium leading-snug line-clamp-2 text-foreground/90 group-hover:text-foreground transition-colors">
+                {product.name}
+              </h3>
 
-            <div className="flex items-baseline gap-1.5 sm:gap-2 pt-0.5">
-              <span className="text-sm sm:text-base font-bold text-foreground">
-                ₹{product.price.toLocaleString("en-IN")}
-              </span>
-              {product.mrp > product.price && (
-                <span className="text-[10px] sm:text-xs text-muted-foreground line-through">
-                  ₹{product.mrp.toLocaleString("en-IN")}
-                </span>
+              {/* Rating */}
+              {(product.averageRating > 0 || product.ratingCount > 0) && (
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded px-1.5 py-0.5">
+                    <Star className="h-2.5 w-2.5 fill-emerald-600 text-emerald-600" />
+                    <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+                      {product.averageRating > 0 ? product.averageRating.toFixed(1) : "0"}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground/60">
+                    ({product.ratingCount})
+                  </span>
+                </div>
               )}
-              {discount > 0 && (
-                <span className="text-[10px] sm:text-[11px] font-semibold text-emerald-600">
-                  {discount}% off
-                </span>
+
+              {/* Color swatches */}
+              {colors.length > 0 && (
+                <div className="flex items-center gap-1 pt-0.5">
+                  <span className="text-[9px] text-muted-foreground/50 mr-0.5">{colors.length} {colors.length === 1 ? "color" : "colors"}</span>
+                </div>
               )}
             </div>
 
-            {(product.averageRating > 0 || product.ratingCount > 0) && (
-              <div className="flex items-center gap-1 sm:gap-1.5 pt-0.5">
-                <StarRating rating={product.averageRating || 0} size="sm" />
-                <span className="text-[10px] sm:text-[11px] text-muted-foreground">
-                  {product.averageRating > 0
-                    ? product.averageRating.toFixed(1)
-                    : "0"}
-                  {product.ratingCount > 0 && (
-                    <span className="ml-0.5">({product.ratingCount})</span>
-                  )}
+            {/* Price */}
+            <div className="flex items-end justify-between pt-2 sm:pt-3">
+              <div className="flex items-baseline gap-2">
+                <span className="text-base sm:text-lg font-semibold tracking-tight text-foreground">
+                  ₹{product.price.toLocaleString("en-IN")}
                 </span>
+                {product.mrp > product.price && (
+                  <span className="text-[11px] sm:text-xs text-muted-foreground/50 line-through decoration-muted-foreground/30">
+                    ₹{product.mrp.toLocaleString("en-IN")}
+                  </span>
+                )}
               </div>
-            )}
 
-            {/* Mobile Add-to-Cart — always visible on touch devices */}
-            <div className="pt-1.5 sm:hidden">
-              <Button
-                size="sm"
-                className="w-full h-8 text-[11px] font-medium bg-foreground text-background hover:bg-foreground/90"
+              {/* Wishlist */}
+              <button
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-border/50 text-muted-foreground/60 transition-all hover:border-foreground/20 hover:text-foreground/80 active:scale-90"
                 onClick={(e) => e.preventDefault()}
+                aria-label="Add to wishlist"
               >
-                <ShoppingCart className="mr-1.5 h-3 w-3" />
-                Add to Bag
-              </Button>
+                <Heart className="h-3.5 w-3.5" />
+              </button>
             </div>
           </div>
-        </CardContent>
+        </Link>
+      </div>
+    );
+  }
+
+  // ─── Grid view card ────────────────────────────────────────────────────
+  return (
+    <div className="group relative bg-card rounded-lg sm:rounded-xl overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.4)]">
+      <Link href={`/products/${product._id}`}>
+        {/* Image container */}
+        <div className="relative aspect-[3/4] overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+          {img ? (
+            <>
+              <Image
+                src={img}
+                alt={product.name}
+                fill
+                className={cn(
+                  "object-cover transition-all duration-700 ease-out",
+                  hoverImg ? "group-hover:opacity-0" : "group-hover:scale-[1.04]",
+                )}
+                sizes="(max-width: 480px) 47vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              />
+              {hoverImg && (
+                <Image
+                  src={hoverImg}
+                  alt={`${product.name} - alternate view`}
+                  fill
+                  className="object-cover opacity-0 transition-all duration-700 ease-out group-hover:opacity-100 group-hover:scale-[1.04]"
+                  sizes="(max-width: 480px) 47vw, (max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                />
+              )}
+            </>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <Package className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/30" />
+            </div>
+          )}
+
+          {/* Top-left: Label badge */}
+          {product.label && (
+            <div className="absolute left-2 top-2 sm:left-3 sm:top-3">
+              <span className="inline-flex items-center gap-1 rounded-sm bg-foreground/85 backdrop-blur-md px-2 py-[3px] text-[9px] sm:text-[10px] font-medium tracking-wide text-background">
+                {product.label}
+              </span>
+            </div>
+          )}
+
+          {/* Top-right: Discount */}
+          {discount > 0 && (
+            <div className="absolute right-2 top-2 sm:right-3 sm:top-3">
+              <span className="inline-block rounded-sm bg-foreground/85 backdrop-blur-md px-1.5 py-[3px] text-[9px] sm:text-[10px] font-semibold tracking-wide text-background">
+                -{discount}%
+              </span>
+            </div>
+          )}
+
+          {/* Wishlist button — visible on mobile, reveal on hover desktop */}
+          <button
+            className="absolute right-2 bottom-2 sm:right-3 sm:bottom-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 dark:bg-black/70 backdrop-blur-sm transition-all duration-300 hover:bg-white dark:hover:bg-black hover:scale-110 active:scale-90 sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0"
+            onClick={(e) => e.preventDefault()}
+            aria-label="Add to wishlist"
+          >
+            <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground/60" />
+          </button>
+        </div>
+
+        {/* Product details */}
+        <div className="p-2.5 sm:p-3.5">
+          {/* Category tag */}
+          <p className="text-[9px] sm:text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/60 mb-1">
+            {product.subCategory}
+          </p>
+
+          {/* Product name */}
+          <h3 className="line-clamp-1 text-[13px] sm:text-[13px] font-medium leading-snug text-foreground/85 group-hover:text-foreground transition-colors">
+            {product.name}
+          </h3>
+
+          {/* Price row */}
+          <div className="flex items-baseline gap-1.5 mt-1.5 sm:mt-2">
+            <span className="text-sm sm:text-[15px] font-semibold tracking-tight text-foreground">
+              ₹{product.price.toLocaleString("en-IN")}
+            </span>
+            {product.mrp > product.price && (
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground/45 line-through decoration-muted-foreground/25">
+                ₹{product.mrp.toLocaleString("en-IN")}
+              </span>
+            )}
+            {discount > 0 && (
+              <span className="text-[10px] sm:text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                ({discount}% off)
+              </span>
+            )}
+          </div>
+
+          {/* Rating + Color swatches row */}
+          <div className="flex items-center justify-between mt-1.5 sm:mt-2 min-h-[18px]">
+            {/* Rating chip */}
+            {(product.averageRating > 0 || product.ratingCount > 0) ? (
+              <div className="flex items-center gap-1">
+                <div className="flex items-center gap-[3px] bg-emerald-50 dark:bg-emerald-950/30 rounded px-1.5 py-[2px]">
+                  <Star className="h-2.5 w-2.5 fill-emerald-600 text-emerald-600 dark:fill-emerald-400 dark:text-emerald-400" />
+                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 leading-none">
+                    {product.averageRating > 0 ? product.averageRating.toFixed(1) : "0"}
+                  </span>
+                </div>
+                {product.ratingCount > 0 && (
+                  <span className="text-[9px] text-muted-foreground/50">
+                    ({product.ratingCount})
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div />
+            )}
+
+            {/* Color swatch dots */}
+            {colors.length > 1 && (
+              <div className="flex items-center gap-0.5">
+                <span className="text-[9px] text-muted-foreground/40 mr-0.5">+{colors.length}</span>
+              </div>
+            )}
+          </div>
+        </div>
       </Link>
-    </Card>
+    </div>
   );
 }
 
@@ -702,16 +747,21 @@ function ProductCard({
 
 function SkeletonCard() {
   return (
-    <Card className="overflow-hidden border-border/60 rounded-lg sm:rounded-xl">
-      <div className="aspect-[3/4] animate-pulse bg-muted" />
-      <CardContent className="p-2.5 sm:p-4 space-y-2">
-        <div className="h-2 w-14 sm:h-2.5 sm:w-16 animate-pulse rounded-full bg-muted" />
-        <div className="h-3.5 sm:h-4 w-3/4 animate-pulse rounded bg-muted" />
-        <div className="h-4 sm:h-5 w-1/3 animate-pulse rounded bg-muted" />
-        <div className="h-2.5 sm:h-3 w-1/2 animate-pulse rounded bg-muted" />
-        <div className="h-8 w-full animate-pulse rounded bg-muted sm:hidden" />
-      </CardContent>
-    </Card>
+    <div className="rounded-lg sm:rounded-xl overflow-hidden bg-card">
+      <div className="aspect-[3/4] animate-pulse bg-neutral-100 dark:bg-neutral-900" />
+      <div className="p-2.5 sm:p-3.5 space-y-2.5">
+        <div className="h-2 w-12 animate-pulse rounded bg-muted" />
+        <div className="h-3.5 w-4/5 animate-pulse rounded bg-muted" />
+        <div className="h-4 w-2/5 animate-pulse rounded bg-muted" />
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-12 animate-pulse rounded bg-muted" />
+          <div className="flex gap-1">
+            <div className="h-3 w-3 animate-pulse rounded-full bg-muted" />
+            <div className="h-3 w-3 animate-pulse rounded-full bg-muted" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -730,8 +780,9 @@ export default function ProductList() {
     priceMin: "",
     priceMax: "",
     rating: "",
+    sort: "newest",
     page: 1,
-    limit: 12,
+    limit: 8,
     viewMode: "grid",
   });
 
@@ -763,7 +814,7 @@ export default function ProductList() {
   const typedProductData = productData as ProductListResult | undefined;
   const productsToDisplay = typedProductData?.products || [];
   const totalProducts = typedProductData?.total ?? productsToDisplay.length;
-  const pageSize = typedProductData?.limit || filters.limit || 12;
+  const pageSize = typedProductData?.limit || filters.limit || 8;
   const totalPages = Math.max(1, Math.ceil(totalProducts / pageSize));
 
   return (
@@ -898,7 +949,7 @@ export default function ProductList() {
                               priceMax: "",
                               rating: "",
                               page: 1,
-                              limit: 12,
+                              limit: 8,
                               viewMode: filters.viewMode,
                             });
                           }}
@@ -923,7 +974,12 @@ export default function ProductList() {
                   </Sheet>
 
                   {/* Sort — visible on all devices */}
-                  <Select defaultValue="newest">
+                  <Select
+                    value={filters.sort || "newest"}
+                    onValueChange={(value) =>
+                      setFilters((prev) => ({ ...prev, sort: value ?? "newest", page: 1 }))
+                    }
+                  >
                     <SelectTrigger className="h-8 sm:h-9 w-[130px] sm:w-[160px] text-[11px] sm:text-xs" aria-label="Sort">
                       <SelectValue placeholder="Sort by" />
                     </SelectTrigger>
