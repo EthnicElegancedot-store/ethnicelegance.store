@@ -389,7 +389,7 @@ export function Header() {
                 <UserDropdown user={data.data} />
               ) : (
                 <Link
-                  href="/login"
+                  href="/signup"
                   className="flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs sm:text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                 >
                   <User className="size-4" />
@@ -398,7 +398,7 @@ export function Header() {
               )}
 
               <Link
-                href={data?.status ? "/account#cart" : "/login"}
+                href={data?.status ? "/account#cart" : "/signup"}
                 className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border bg-background hover:bg-accent transition-colors"
                 aria-label="View shopping bag"
               >

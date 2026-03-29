@@ -27,7 +27,11 @@ export function Account() {
   const queryClient = useQueryClient();
 
   // Use cached user data from header (no refetch needed)
-  const { data: userData, isLoading, isError } = useQuery({
+  const {
+    data: userData,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["getUser"],
     queryFn: async () => {
       const response = await api.get("/account/me", { queryClient });
@@ -79,7 +83,9 @@ export function Account() {
       <main className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading your account...</p>
+          <p className="text-sm text-muted-foreground">
+            Loading your account...
+          </p>
         </div>
       </main>
     );
@@ -104,11 +110,13 @@ export function Account() {
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-3 py-4 sm:px-6 sm:py-8 lg:px-8">
         <ProfileHeader
-        avatar={user.avatar}
+          avatar={user.avatar}
           name={user.name || user.email?.split("@")[0] || "User"}
           email={user.email || ""}
           role={user.role?.toUpperCase() || "USER"}
-          joinedDate={user.createdAt ? formatJoinDate(user.createdAt) : "Recently joined"}
+          joinedDate={
+            user.createdAt ? formatJoinDate(user.createdAt) : "Recently joined"
+          }
           location={user.location || user.city || "Not specified"}
           onEditProfile={() => handleTabChange("personal")}
         />
@@ -153,7 +161,7 @@ export function Account() {
             <PersonalInfoTab />
           </TabsContent>
           <TabsContent value="address">
-            <AddressTab />
+            <AddressTab isActive={activeTab === "address"} />
           </TabsContent>
           <TabsContent value="cart">
             <CartTab />

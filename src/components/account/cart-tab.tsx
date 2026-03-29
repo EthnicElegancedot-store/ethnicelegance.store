@@ -403,12 +403,22 @@ export function CartTab() {
         return;
       }
 
-      const { razorpayOrder } = orderResponse.data;
+      const { razorpayOrder, keyId } = orderResponse.data;
+
+      if (!keyId) {
+        toastManager.add({
+          title: "Payment Config Error",
+          description:
+            "Razorpay key is not configured on server. Please contact support.",
+          type: "error",
+        });
+        setIsProcessingPayment(false);
+        return;
+      }
 
       // 3. Open Razorpay checkout
       const options = {
-        key:
-          process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_X7oXoYI3bvY2r1",
+        key: keyId,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
         name: "Ethnic Edge",

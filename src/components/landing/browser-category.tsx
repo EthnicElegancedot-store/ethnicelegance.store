@@ -5,13 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import {
-  Star,
-  ArrowRight,
-  Loader2,
-  ShoppingBag,
-  Heart,
-} from "lucide-react";
+import { Star, ArrowRight, Loader2, ShoppingBag } from "lucide-react";
 
 export function BrowserCategorySection() {
   const { data, isLoading, isError } = useQuery({
@@ -122,16 +116,6 @@ function ProductCard({ product }: { product: any }) {
             {discount}% off
           </span>
         )}
-
-        {/* Wishlist button — top right */}
-        <button
-          type="button"
-          className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
-          onClick={(e) => e.preventDefault()}
-          aria-label="Add to wishlist"
-        >
-          <Heart className="h-4 w-4 text-foreground" />
-        </button>
 
         {/* Quick shop — bottom on hover */}
         <div className="absolute bottom-0 left-0 right-0 p-2.5 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">

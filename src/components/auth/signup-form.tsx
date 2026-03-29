@@ -58,6 +58,7 @@ export function SignupForm({
       toastManager.add({
         type: "error",
         title: res.message,
+        timeout: 5000,
       });
     }
   };
