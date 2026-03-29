@@ -21,7 +21,15 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { ProductSelector } from "./product-selector";
 import { api } from "@/lib/api";
-import { Loader2, CheckCircle2, Ticket, Calendar, Percent, Tag, Package } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  Ticket,
+  Calendar,
+  Percent,
+  Tag,
+  Package,
+} from "lucide-react";
 
 interface CouponFormData {
   code: string;
@@ -126,9 +134,15 @@ export default function CreateCouponCard() {
               </div>
               {createdCoupon && (
                 <div className="text-sm space-y-1">
-                  <p><strong>Code:</strong> {createdCoupon.code}</p>
-                  <p><strong>Discount:</strong> {createdCoupon.discount}%</p>
-                  <p><strong>Min Order:</strong> ₹{createdCoupon.minOrderValue}</p>
+                  <p>
+                    <strong>Code:</strong> {createdCoupon.code}
+                  </p>
+                  <p>
+                    <strong>Discount:</strong> {createdCoupon.discount}%
+                  </p>
+                  <p>
+                    <strong>Min Order:</strong> ₹{createdCoupon.minOrderValue}
+                  </p>
                 </div>
               )}
             </div>
@@ -199,11 +213,14 @@ export default function CreateCouponCard() {
                   id="discount"
                   name="discount"
                   type="number"
+                  step="0.01"
                   min={0}
                   max={100}
                   placeholder="25"
                   value={data.discount}
-                  onChange={(e) => setData({ ...data, discount: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, discount: e.target.value })
+                  }
                 />
               </FieldItem>
             </Field>
@@ -238,7 +255,9 @@ export default function CreateCouponCard() {
                 min={1}
                 placeholder="100"
                 value={data.usageLimit}
-                onChange={(e) => setData({ ...data, usageLimit: e.target.value })}
+                onChange={(e) =>
+                  setData({ ...data, usageLimit: e.target.value })
+                }
               />
             </FieldItem>
             <FieldDescription>
@@ -262,7 +281,9 @@ export default function CreateCouponCard() {
                   name="validFrom"
                   type="date"
                   value={data.validFrom}
-                  onChange={(e) => setData({ ...data, validFrom: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, validFrom: e.target.value })
+                  }
                 />
               </FieldItem>
             </Field>
@@ -281,7 +302,9 @@ export default function CreateCouponCard() {
                   name="validTill"
                   type="date"
                   value={data.validTill}
-                  onChange={(e) => setData({ ...data, validTill: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, validTill: e.target.value })
+                  }
                 />
               </FieldItem>
             </Field>

@@ -26,7 +26,6 @@ export default function Home() {
         {/* <CarouselHeroSection /> */}
         <BentoGrid />
         <BrowserCategorySection />
-        <PopularKurta />
         <CraftsmanshipSection />
         <Testimonials />
       </main>

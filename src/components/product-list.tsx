@@ -15,7 +15,6 @@ import {
   LayoutGrid,
   List,
   ShoppingCart,
-  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -452,9 +451,7 @@ function ProductCard({
             <ShoppingCart className="size-4" />
             Add
           </Button>
-          <Button variant="outline" size="icon">
-            <Heart className="size-4" />
-          </Button>
+
         </div>
       </CardContent>
     </Card>

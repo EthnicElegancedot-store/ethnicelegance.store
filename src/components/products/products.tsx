@@ -6,7 +6,7 @@ import {
   Search,
   Grid3X3,
   LayoutList,
-  Heart,
+
   Star,
   SlidersHorizontal,
   X,
@@ -601,14 +601,7 @@ function ProductCard({
                 )}
               </div>
 
-              {/* Wishlist */}
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-border/50 text-muted-foreground/60 transition-all hover:border-foreground/20 hover:text-foreground/80 active:scale-90"
-                onClick={(e) => e.preventDefault()}
-                aria-label="Add to wishlist"
-              >
-                <Heart className="h-3.5 w-3.5" />
-              </button>
+
             </div>
           </div>
         </Link>
@@ -668,14 +661,7 @@ function ProductCard({
             </div>
           )}
 
-          {/* Wishlist button — visible on mobile, reveal on hover desktop */}
-          <button
-            className="absolute right-2 bottom-2 sm:right-3 sm:bottom-3 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 dark:bg-black/70 backdrop-blur-sm transition-all duration-300 hover:bg-white dark:hover:bg-black hover:scale-110 active:scale-90 sm:opacity-0 sm:translate-y-3 sm:group-hover:opacity-100 sm:group-hover:translate-y-0"
-            onClick={(e) => e.preventDefault()}
-            aria-label="Add to wishlist"
-          >
-            <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground/60" />
-          </button>
+
         </div>
 
         {/* Product details */}

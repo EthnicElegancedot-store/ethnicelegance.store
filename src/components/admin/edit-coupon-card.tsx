@@ -92,8 +92,9 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
         validFrom: formatDateForInput(coupon.validFrom),
         validTill: formatDateForInput(coupon.validTill),
         isActive: coupon.isActive ?? true,
-        applicableTo: (coupon.applicableTo || []).map((id: string | { toString?: () => string }) =>
-          typeof id === "string" ? id : String(id)
+        applicableTo: (coupon.applicableTo || []).map(
+          (id: string | { toString?: () => string }) =>
+            typeof id === "string" ? id : String(id),
         ),
       });
     } catch (err) {
@@ -127,7 +128,7 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
 
       const response = await api.patch(
         `/admin/coupon/edit/${couponId}`,
-        payload
+        payload,
       );
 
       if (!response?.status) {
@@ -203,9 +204,15 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
                 </p>
               </div>
               <div className="text-sm space-y-1">
-                <p><strong>Code:</strong> {data.code}</p>
-                <p><strong>Discount:</strong> {data.discount}%</p>
-                <p><strong>Min Order:</strong> ₹{data.minOrderValue}</p>
+                <p>
+                  <strong>Code:</strong> {data.code}
+                </p>
+                <p>
+                  <strong>Discount:</strong> {data.discount}%
+                </p>
+                <p>
+                  <strong>Min Order:</strong> ₹{data.minOrderValue}
+                </p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -242,9 +249,7 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
               <Ticket className="size-6" />
               Edit Coupon
             </CardTitle>
-            <CardDescription>
-              Update discount coupon details.
-            </CardDescription>
+            <CardDescription>Update discount coupon details.</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -284,11 +289,14 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
                   id="discount"
                   name="discount"
                   type="number"
+                  step="0.01"
                   min={0}
                   max={100}
                   placeholder="25"
                   value={data.discount}
-                  onChange={(e) => setData({ ...data, discount: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, discount: e.target.value })
+                  }
                 />
               </FieldItem>
             </Field>
@@ -321,7 +329,9 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
                 min={1}
                 placeholder="100"
                 value={data.usageLimit}
-                onChange={(e) => setData({ ...data, usageLimit: e.target.value })}
+                onChange={(e) =>
+                  setData({ ...data, usageLimit: e.target.value })
+                }
               />
             </FieldItem>
           </Field>
@@ -340,7 +350,9 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
                   name="validFrom"
                   type="date"
                   value={data.validFrom}
-                  onChange={(e) => setData({ ...data, validFrom: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, validFrom: e.target.value })
+                  }
                 />
               </FieldItem>
             </Field>
@@ -358,7 +370,9 @@ export default function EditCouponCard({ couponId }: EditCouponCardProps) {
                   name="validTill"
                   type="date"
                   value={data.validTill}
-                  onChange={(e) => setData({ ...data, validTill: e.target.value })}
+                  onChange={(e) =>
+                    setData({ ...data, validTill: e.target.value })
+                  }
                 />
               </FieldItem>
             </Field>

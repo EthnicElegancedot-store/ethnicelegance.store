@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -464,37 +464,51 @@ function AddressForm({
   );
 }
 
-export function AddressTab() {
+export function AddressTab({ isActive = true }: { isActive?: boolean }) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [limitError, setLimitError] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const wasActiveRef = useRef(false);
 
   // Fetch addresses from API via TanStack Query
   const {
-    data: addressData,
+    data: addresses = [],
     isLoading,
     isError,
+    error,
+    refetch,
   } = useQuery({
     queryKey: ["getAddress"],
     queryFn: async () => {
       const response = await api.get("/account/address", { queryClient });
-      return response;
+      if (!response?.status) {
+        throw new Error(response?.message || "Failed to load addresses");
+      }
+
+      return (response.data || []).map((addr: any) => ({
+        ...addr,
+        pinCode: addr.pinCode?.toString() || "",
+        phoneNo: addr.phoneNo?.toString() || "",
+      })) as AddressData[];
     },
+    enabled: isActive,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    refetchOnMount: false, // Don't refetch on every tab switch
+    refetchOnMount: "always",
     refetchOnWindowFocus: false, // Don't refetch when window regains focus
+    retry: 1,
   });
 
-  // Transform addresses data: convert numbers to strings for form compatibility
-  const addresses: AddressData[] = (addressData?.data || []).map(
-    (addr: any) => ({
-      ...addr,
-      pinCode: addr.pinCode?.toString() || "",
-      phoneNo: addr.phoneNo?.toString() || "",
-    }),
-  );
+  // Ensure fresh address data whenever user switches to this tab.
+  useEffect(() => {
+    const becameActive = isActive && !wasActiveRef.current;
+    if (becameActive) {
+      refetch();
+    }
+    wasActiveRef.current = isActive;
+  }, [isActive, refetch]);
+
   const canAddMore = addresses.length < MAX_ADDRESSES;
 
   // Create address mutation
@@ -599,8 +613,18 @@ export function AddressTab() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <AlertCircle className="h-8 w-8 text-destructive" />
           <p className="mt-3 text-sm text-muted-foreground">
-            Failed to load addresses. Please try again.
+            {error instanceof Error
+              ? error.message
+              : "Failed to load addresses. Please try again."}
           </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => refetch()}
+          >
+            Retry
+          </Button>
         </div>
       </div>
     );

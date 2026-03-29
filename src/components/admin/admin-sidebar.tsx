@@ -6,7 +6,6 @@ import {
   List,
   Search,
   Settings,
-  SquarePen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,12 +40,12 @@ const items = [
     list: [
       {
         title: "Orders List",
-        url: "#",
+        url: "/admin/orders",
         icon: Inbox,
       },
       {
         title: "Orders Status",
-        url: "#",
+        url: "/admin/orders",
         icon: Calendar,
       },
     ],
