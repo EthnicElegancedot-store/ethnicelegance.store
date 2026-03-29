@@ -51,6 +51,8 @@ const UserDropdown = ({ user }: { user: any }) => {
     setIsLoading(true);
     const response = await api.get("/auth/logout");
     if (response.status) {
+      queryClient.setQueryData(["getUser"], null);
+      queryClient.clear();
       router.push("/login");
       toastManager.add({
         title: "Logged out",

@@ -30,11 +30,12 @@ import { api } from "@/lib/api";
 import UserDropdown from "./user-dropdown";
 
 const categories = [
-  { title: "Kurta Sets", href: "/products?category=Kurta+Sets", id: "c1" },
-  { title: "Sarees", href: "/products?category=Sarees", id: "c2" },
-  { title: "Lehengas", href: "/products?category=Lehengas", id: "c3" },
-  { title: "Dupattas", href: "/products?category=Dupattas", id: "c4" },
-  { title: "All Products", href: "/products", id: "c5" },
+  { title: "Ethnic Wear", href: "/products?category=Ethnic+Wear", id: "c1" },
+  { title: "Dress Material", href: "/products?category=Dress+Material", id: "c2" },
+  { title: "Sarees", href: "/products?category=Sarees", id: "c3" },
+  { title: "Lehengas", href: "/products?category=Lehengas", id: "c4" },
+  { title: "Dupattas", href: "/products?category=Dupattas", id: "c5" },
+  { title: "All Products", href: "/products", id: "c6" },
 ];
 
 export function Header() {
