@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle2, Mail, MapPin } from "lucide-react";
+import { api } from "@/lib/api";
 
 const MUMBAI_CENTRAL_MAP_EMBED =
   "https://maps.google.com/maps?q=Mumbai+Central,+Mumbai,+Maharashtra,+India&t=&z=15&ie=UTF8&iwloc=&output=embed";
@@ -25,9 +26,17 @@ export default function ContactPageContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("sending");
-    await new Promise((r) => setTimeout(r, 800));
-    setStatus("success");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    try {
+      const response = await api.post("/contact", formData);
+      if (response && response.status) {
+        setStatus("success");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      } else {
+        setStatus("error");
+      }
+    } catch {
+      setStatus("error");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -36,215 +45,196 @@ export default function ContactPageContent() {
 
   return (
     <div className="bg-background">
-      {/* Banner */}
-      <section className="relative h-[260px] sm:h-[300px] md:h-[360px] w-full overflow-hidden">
-        <Image
-          src="/images/kurta-1.jpg"
-          alt="Ethnic Elegance kurta collection"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="100vw"
-        />
-        <div
-          className="absolute inset-0"
-          style={{ background: `linear-gradient(to bottom, ${PRIMARY}99 0%, ${PRIMARY}cc 100%)` }}
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-          <p
-            className="text-xs font-medium tracking-[0.2em] uppercase mb-2"
-            style={{ color: "rgba(255,255,255,0.9)" }}
-          >
+      {/* Minimal Header */}
+      <section className="relative px-4 py-16 md:py-24 overflow-hidden border-b border-border/40 bg-muted/10">
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-sm font-medium tracking-[0.2em] uppercase mb-4 text-primary">
             Get in touch
           </p>
-          <h1 className="font-serif text-3xl font-medium tracking-tight text-white sm:text-4xl md:text-5xl">
-            Contact
+          <h1 className="font-serif text-4xl font-normal tracking-tight text-foreground sm:text-5xl md:text-6xl">
+            How can we help?
           </h1>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-white/90 sm:text-base">
-            We’re here to help with orders, sizing, and your ethnic wear journey.
+          <p className="mt-6 text-muted-foreground leading-relaxed max-w-xl mx-auto text-base sm:text-lg">
+            Whether you have a question about an order, styling advice, or our latest ethnic collections, our team is ready to assist you.
           </p>
         </div>
       </section>
 
-      {/* Form + Map section – professional block */}
-      <section className="px-4 py-16 md:py-24 bg-muted/25">
-        <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-          <div className="mb-10 md:mb-12">
-            <p
-              className="text-xs font-semibold uppercase tracking-[0.18em] mb-2"
-              style={{ color: PRIMARY }}
-            >
-              Send a message
-            </p>
-            <h2 className="text-2xl font-bold text-foreground md:text-3xl text-balance">
-              We’d love to hear from you
-            </h2>
-            <p className="mt-2 text-muted-foreground leading-relaxed max-w-xl">
-              Have a question about your order, our collection, or something else? Fill in the form
-              and we’ll get back to you within 24–48 hours.
-            </p>
-          </div>
+      {/* Main Content Area */}
+      <section className="px-4 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-16 lg:grid-cols-[1fr_1.5fr] lg:items-start">
 
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8 lg:items-stretch">
-            {/* Left: Form – professional panel with header */}
-            <div className="rounded-2xl overflow-hidden bg-card border border-border shadow-[0_4px_24px_-4px_rgba(31,58,86,0.1),0_2px_8px_-2px_rgba(31,58,86,0.06)]">
-              {/* Form header strip – primary */}
-              <div
-                className="flex items-center gap-2 px-6 py-4"
-                style={{ backgroundColor: PRIMARY }}
-              >
-                <Mail className="size-5 text-white" strokeWidth={1.5} />
-                <span className="text-sm font-semibold tracking-wide text-white">
-                  Contact form
-                </span>
+            {/* Left: Contact Information */}
+            <div className="flex flex-col space-y-12">
+              <div>
+                <h3 className="font-serif text-2xl font-medium text-foreground">
+                  Contact Information
+                </h3>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                  Reach out to us through any of the following channels. We aim to respond to all inquiries within 24 hours.
+                </p>
               </div>
-              <div className="p-6 sm:p-8 bg-card">
-                {status === "success" ? (
-                  <div className="text-center py-8">
-                    <div
-                      className="inline-flex size-14 items-center justify-center rounded-full mb-5"
-                      style={{ backgroundColor: `${PRIMARY}18` }}
-                    >
-                      <CheckCircle2 className="size-7" style={{ color: PRIMARY }} strokeWidth={1.5} />
-                    </div>
-                    <h3 className="font-semibold text-foreground text-lg">Message sent</h3>
-                    <p className="mt-2 text-muted-foreground text-sm leading-relaxed">
-                      We’ll reply to your email within 24–48 hours.
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="default"
-                      className="mt-6 rounded-lg"
-                      style={{
-                        borderColor: `${PRIMARY}40`,
-                        color: PRIMARY,
-                      }}
-                      onClick={() => setStatus("idle")}
-                    >
-                      Send another message
-                    </Button>
+
+              <div className="space-y-8">
+                <div className="flex items-start gap-5">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
+                    <Mail className="size-5" />
                   </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                      <Label htmlFor="contact-name" className="text-sm font-medium text-foreground">
-                        Name
+                  <div>
+                    <h4 className="text-sm font-semibold tracking-wide text-foreground">Email</h4>
+                    <a
+                      href="mailto:support@ethnicelegance.store"
+                      className="mt-1 block text-sm text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      support@ethnicelegance.store
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-5">
+                  <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/5 text-primary">
+                    <MapPin className="size-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold tracking-wide text-foreground">Boutique Location</h4>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                      Mumbai Central, Mumbai<br />
+                      Maharashtra, India
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Minimal Map embed */}
+              <div className="mt-8 overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+                <iframe
+                  src={MUMBAI_CENTRAL_MAP_EMBED}
+                  width="100%"
+                  height="220"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Mumbai Central – Ethnic Elegance"
+                  className="block w-full"
+                />
+              </div>
+            </div>
+
+            {/* Right: Minimal Form */}
+            <div className="rounded-2xl border border-border/40 bg-card p-8 sm:p-12 shadow-sm">
+              <div className="mb-8">
+                <h3 className="font-serif text-2xl font-medium text-foreground">
+                  Send a Message
+                </h3>
+              </div>
+
+              {status === "success" ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="mb-6 flex size-16 items-center justify-center rounded-full bg-green-50 text-green-600">
+                    <CheckCircle2 className="size-8" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-xl font-medium text-foreground">Message Received</h3>
+                  <p className="mt-2 text-muted-foreground text-sm max-w-sm">
+                    Thank you for reaching out. A member of our team will get back to you shortly.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="mt-8 px-8 rounded-full border-border hover:bg-muted"
+                    onClick={() => setStatus("idle")}
+                  >
+                    Send another
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-name" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Your Name
                       </Label>
                       <Input
                         id="contact-name"
                         name="name"
                         type="text"
-                        placeholder="Your name"
+                        placeholder="Jane Doe"
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        autoComplete="name"
-                        className="mt-2 h-11 rounded-lg border-input bg-background"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="contact-email" className="text-sm font-medium text-foreground">
-                        Email
+                    <div className="space-y-2">
+                      <Label htmlFor="contact-email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Email Address
                       </Label>
                       <Input
                         id="contact-email"
                         name="email"
                         type="email"
-                        placeholder="you@example.com"
+                        placeholder="jane@example.com"
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        autoComplete="email"
-                        className="mt-2 h-11 rounded-lg border-input bg-background"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="contact-subject" className="text-sm font-medium text-foreground">
-                        Subject
-                      </Label>
-                      <Input
-                        id="contact-subject"
-                        name="subject"
-                        type="text"
-                        placeholder="Order, returns, or general enquiry"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        required
-                        className="mt-2 h-11 rounded-lg border-input bg-background"
-                      />
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <Label htmlFor="contact-subject" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Subject
+                    </Label>
+                    <Input
+                      id="contact-subject"
+                      name="subject"
+                      type="text"
+                      placeholder="What is this regarding?"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <Label htmlFor="contact-message" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Message
+                    </Label>
+                    <Textarea
+                      id="contact-message"
+                      name="message"
+                      placeholder="Type your message here..."
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      rows={5}
+                    />
+                  </div>
+
+                  {status === "error" && (
+                    <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 border border-red-100">
+                      An error occurred while sending your message. Please try again.
                     </div>
-                    <div>
-                      <Label htmlFor="contact-message" className="text-sm font-medium text-foreground">
-                        Message
-                      </Label>
-                      <Textarea
-                        id="contact-message"
-                        name="message"
-                        placeholder="How can we help?"
-                        value={formData.message}
-                        onChange={handleChange}
-                        required
-                        rows={4}
-                        className="mt-2 min-h-[110px] resize-none rounded-lg border-input bg-background py-3"
-                      />
-                    </div>
-                    {status === "error" && (
-                      <p className="text-sm text-destructive">
-                        Something went wrong. Please try again.
-                      </p>
-                    )}
+                  )}
+
+                  <div className="pt-6">
                     <Button
                       type="submit"
-                      className="w-full h-11 rounded-lg font-semibold text-white hover:opacity-90 transition-opacity"
-                      style={{ backgroundColor: PRIMARY }}
+                      className="w-full h-14 rounded-full text-sm font-medium tracking-wide transition-all shadow-md hover:shadow-lg"
+                      style={{ backgroundColor: PRIMARY, color: "white" }}
                       disabled={status === "sending"}
                     >
                       {status === "sending" ? (
-                        <>
+                        <div className="flex items-center gap-2">
                           <Loader2 className="size-4 animate-spin" />
-                          Sending…
-                        </>
+                          <span>Sending Message...</span>
+                        </div>
                       ) : (
-                        "Send message"
+                        "Send Message"
                       )}
                     </Button>
-                  </form>
-                )}
-                <p className="mt-6 text-sm text-muted-foreground">
-                  Or email us at{" "}
-                  <a
-                    href="mailto:support@ethnicelegance.store"
-                    className="font-medium underline underline-offset-2 hover:no-underline"
-                    style={{ color: PRIMARY }}
-                  >
-                    support@ethnicelegance.store
-                  </a>
-                </p>
-              </div>
-            </div>
-
-            {/* Right: Map – matching professional panel */}
-            <div className="rounded-2xl overflow-hidden bg-card border border-border shadow-[0_4px_24px_-4px_rgba(31,58,86,0.1),0_2px_8px_-2px_rgba(31,58,86,0.06)] h-[340px] sm:h-[400px] lg:h-auto lg:min-h-[460px]">
-              <div
-                className="flex items-center gap-2 px-6 py-4"
-                style={{ backgroundColor: PRIMARY }}
-              >
-                <MapPin className="size-5 text-white" strokeWidth={1.5} />
-                <span className="text-sm font-semibold tracking-wide text-white">
-                  Find us – Mumbai Central
-                </span>
-              </div>
-              <iframe
-                src={MUMBAI_CENTRAL_MAP_EMBED}
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Mumbai Central – Ethnic Elegance"
-                className="block w-full h-[calc(100%-3.5rem)] min-h-[280px] lg:min-h-[400px]"
-              />
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>
